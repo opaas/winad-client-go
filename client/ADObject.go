@@ -2,7 +2,7 @@ package client
 
 import (
 	"fmt"
-	"github.com/surajsub/winad-client-go/helper"
+	"github.com/opaas/winad-client-go/helper"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
