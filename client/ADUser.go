@@ -3,8 +3,8 @@ package client
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/opaas/winad-client-go/helper"
 	log "github.com/sirupsen/logrus"
-	"github.com/surajsub/winad-client-go/helper"
 	"golang.org/x/text/encoding/unicode"
 	"strconv"
 	"time"
