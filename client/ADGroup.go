@@ -43,7 +43,7 @@ func (s *ADGroupServiceOp) getGroup(name, baseOU string) (*ADGroup, error) {
 	filter := fmt.Sprintf("(&(objectclass=*)(cn=%s))", name)
 
 	// trying to get user object
-	ret, err := s.client.ADObject.searchObject(filter, baseOU, attributes)
+	ret, err := s.client.searchObject(filter, baseOU, attributes)
 	log.Infof("the filter is %s", filter)
 	if err != nil {
 		return nil, fmt.Errorf("getUser - failed to search %s in %s: %s", name, baseOU, err)
@@ -95,7 +95,7 @@ func (s *ADGroupServiceOp) createGroup(gc ADGroupRequest) error {
 	//return api.createObject(fmt.Sprintf("CN=%s,%s",gc.name,gc.baseOU),[]string{"organizationalPerson", "person", "top", "user"},attributes)
 	var group_cn = "CN=" + gc.group_name + "," + gc.group_base_ou
 	log.Infof("Creating the group with the following cn %s", group_cn)
-	err = s.client.ADObject.createObject(fmt.Sprintf("CN=%s,%s", gc.group_name, gc.group_base_ou), []string{"top", "group"}, attributes)
+	err = s.client.createObject(fmt.Sprintf("CN=%s,%s", gc.group_name, gc.group_base_ou), []string{"top", "group"}, attributes)
 	if err != nil {
 		return fmt.Errorf("create User - Failed to create the group: %s", err)
 	}
@@ -109,7 +109,7 @@ func (s *ADGroupServiceOp) createGroup(gc ADGroupRequest) error {
 func (s *ADGroupServiceOp) updateGroupName(name, baseOU, newName string) error {
 	log.Infof("Updating name of ou %s under %s.", name, baseOU)
 
-	tmp, err := s.client.ADObject.searchObject("(objectclass=organizationalUnit)", name, nil)
+	tmp, err := s.client.searchObject("(objectclass=organizationalUnit)", name, nil)
 	if err != nil {
 		return fmt.Errorf("updateOUName - talking to active directory failed: %s", err)
 	}
@@ -135,7 +135,7 @@ func (s *ADGroupServiceOp) updateGroupName(name, baseOU, newName string) error {
 func (s *ADGroupServiceOp) deleteGroup(dn string) error {
 	log.Infof("Deleting user %s.", dn)
 
-	objects, err := s.client.ADObject.searchObject("(objectclass=organizationalUnit)", dn, nil)
+	objects, err := s.client.searchObject("(objectclass=organizationalUnit)", dn, nil)
 	if err != nil {
 		return fmt.Errorf("deleteOU - failed remove ou %s: %s", dn, err)
 	}
@@ -146,5 +146,5 @@ func (s *ADGroupServiceOp) deleteGroup(dn string) error {
 		}
 	}
 
-	return s.client.ADObject.deleteObject(dn)
+	return s.client.deleteObject(dn)
 }
