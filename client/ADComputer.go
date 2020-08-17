@@ -8,6 +8,8 @@ import (
 	"gopkg.in/ldap.v3"
 )
 
+//TODO - Need to work on this
+
 // Computer is the base implementation of ad computer object
 type ADComputer struct {
 	name        string
@@ -43,7 +45,7 @@ func (s *ADComputerServiceOp) getComputer(name string) (*ADComputer, error) {
 	filter := fmt.Sprintf("(&(objectclass=computer)(name=%s))", name)
 
 	// trying to get ou object
-	ret, err := s.client.ADObject.searchObject(filter, domain, attributes)
+	ret, err := s.client.searchObject(filter, domain, attributes)
 	if err != nil {
 		return nil, fmt.Errorf("getComputer - searching for computer object %s failed: %s", name, err)
 	}
@@ -88,7 +90,7 @@ func (s *ADComputerServiceOp) createComputer(cn, ou, description string) error {
 	attributes["userAccountControl"] = []string{"4096"}
 	attributes["description"] = []string{description}
 
-	return s.client.ADObject.createObject(fmt.Sprintf("cn=%s,%s", cn, ou), []string{"computer"}, attributes)
+	return s.client.createObject(fmt.Sprintf("cn=%s,%s", cn, ou), []string{"computer"}, attributes)
 }
 
 // moves an existing computer object to a new ou
@@ -126,7 +128,7 @@ func (s *ADComputerServiceOp) updateComputerOU(cn, ou, newOU string) error {
 // updates the description of an existing computer object
 func (s *ADComputerServiceOp) updateComputerDescription(cn, ou, description string) error {
 	log.Infof("Updating description of computer object %s", cn)
-	return s.client.ADObject.updateObject(fmt.Sprintf("cn=%s,%s", cn, ou), nil, nil, map[string][]string{
+	return s.client.updateObject(fmt.Sprintf("cn=%s,%s", cn, ou), nil, nil, map[string][]string{
 		"description": {description},
 	}, nil)
 }
@@ -134,5 +136,5 @@ func (s *ADComputerServiceOp) updateComputerDescription(cn, ou, description stri
 // deletes an existing computer object.
 func (s *ADComputerServiceOp) deleteComputer(cn, ou string) error {
 	log.Infof("Deleting computer object %s", cn)
-	return s.client.ADObject.deleteObject(fmt.Sprintf("cn=%s,%s", cn, ou))
+	return s.client.deleteObject(fmt.Sprintf("cn=%s,%s", cn, ou))
 }

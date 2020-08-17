@@ -61,7 +61,7 @@ func (s *ADUserServiceOp) getUser(name, baseOU string) (*ADUser, error) {
 	filter := fmt.Sprintf("(&(objectclass=*)(cn=%s))", name)
 
 	// trying to get user object
-	ret, err := s.client.ADObject.searchObject(filter, baseOU, attributes)
+	ret, err := s.client.searchObject(filter, baseOU, attributes)
 	log.Infof("the filter is %s", filter)
 	if err != nil {
 		return nil, fmt.Errorf("getUser - failed to search %s in %s: %s", name, baseOU, err)
@@ -132,7 +132,7 @@ func (s *ADUserServiceOp) createUser(user_create ADUserRequest) error {
 	}
 	var usercn = "CN=" + user_create.name + "," + user_create.baseOU
 	log.Infof("Creating the user with the following cn %s", usercn)
-	err = s.client.ADObject.createObject(fmt.Sprintf("CN=%s,%s", user_create.name, user_create.baseOU), []string{"organizationalPerson", "person", "top", "user"}, attributes)
+	err = s.client.createObject(fmt.Sprintf("CN=%s,%s", user_create.name, user_create.baseOU), []string{"organizationalPerson", "person", "top", "user"}, attributes)
 	if err != nil {
 		return fmt.Errorf("create User - Failed to create the user: %s", err)
 	}
@@ -239,7 +239,7 @@ func (s *ADUserServiceOp) updateUserName(name, baseOU, newName string) error {
 func (s *ADUserServiceOp) deleteUser(dn string) error {
 	log.Infof("Deleting user %s.", dn)
 
-	objects, err := s.client.ADObject.searchObject("(objectclass=organizationalUnit)", dn, nil)
+	objects, err := s.client.searchObject("(objectclass=organizationalUnit)", dn, nil)
 	if err != nil {
 		return fmt.Errorf("deleteOU - failed remove ou %s: %s", dn, err)
 	}
@@ -250,7 +250,7 @@ func (s *ADUserServiceOp) deleteUser(dn string) error {
 		}
 	}
 
-	return s.client.ADObject.deleteObject(dn)
+	return s.client.deleteObject(dn)
 }
 
 func (s *ADUserServiceOp) addUserToGroup(userdn, groupdn string) error {

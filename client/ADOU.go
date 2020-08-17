@@ -38,7 +38,7 @@ func (s *ADOUServiceOp) getOU(name, baseOU string) (*ADOU, error) {
 	filter := fmt.Sprintf("(&(objectclass=organizationalUnit)(ou=%s))", name)
 
 	// trying to get ou object
-	ret, err := s.client.ADObject.searchObject(filter, baseOU, attributes)
+	ret, err := s.client.searchObject(filter, baseOU, attributes)
 	if err != nil {
 		return nil, fmt.Errorf("getOU - failed to search %s in %s: %s", name, baseOU, err)
 	}
@@ -81,7 +81,7 @@ func (s *ADOUServiceOp) createOU(name, baseOU, description string) error {
 	attributes["ou"] = []string{name}
 	attributes["description"] = []string{description}
 
-	return s.client.ADObject.createObject(fmt.Sprintf("ou=%s,%s", name, baseOU), []string{"organizationalUnit", "top"}, attributes)
+	return s.client.createObject(fmt.Sprintf("ou=%s,%s", name, baseOU), []string{"organizationalUnit", "top"}, attributes)
 }
 
 // moves an existing ou object to a new ou
@@ -161,7 +161,7 @@ func (s *ADOUServiceOp) updateOUName(name, baseOU, newName string) error {
 func (s *ADOUServiceOp) deleteOU(dn string) error {
 	log.Infof("Deleting ou %s.", dn)
 
-	objects, err := s.client.ADObject.searchObject("(objectclass=organizationalUnit)", dn, nil)
+	objects, err := s.client.searchObject("(objectclass=organizationalUnit)", dn, nil)
 	if err != nil {
 		return fmt.Errorf("deleteOU - failed remove ou %s: %s", dn, err)
 	}
@@ -172,5 +172,5 @@ func (s *ADOUServiceOp) deleteOU(dn string) error {
 		}
 	}
 
-	return s.client.ADObject.deleteObject(dn)
+	return s.client.deleteObject(dn)
 }
