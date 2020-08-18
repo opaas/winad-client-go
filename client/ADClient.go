@@ -15,7 +15,8 @@ import (
 
 // API is the basic struct which should implement the interface
 type Client struct {
-	client  *Conn
+	client  *ldapconn
+	Config  *ADConfig
 	ADUser  ADUserService
 	ADGroup ADGroupService
 	ADOU    ADOUService
@@ -26,46 +27,37 @@ type ADObject struct {
 	attributes map[string][]string
 }
 
-type Conn struct {
-	//host     string
-	//port     int
-	domain string
-	//useTLS   bool
-	//insecure bool
-	//user     string
-	//password string
-	conn ldap.Conn
+type ADConfig struct {
+	host     string
+	port     int
+	domain   string
+	useTLS   bool
+	insecure bool
+	user     string
+	password string
+	conn     ldap.Conn
 }
 
-func NewClient(c *Client) *Client {
+type ldapconn struct {
+	domain string
+	conn   ldap.Conn
+}
 
+func NewClient(host, user, password, domain string, port int, usetls bool) (*Client, error) {
+
+	conf := NewConfig(host, user, password, domain, port, usetls)
+
+	c := &Client{Config: conf}
 	c.ADUser = &ADUserServiceOp{client: c}
 	c.ADGroup = &ADGroupServiceOp{client: c}
 	c.ADOU = &ADOUServiceOp{client: c}
-	return c
+	return c, nil
 }
 
 // connects to an Active Directory server
 
-func New(c *Client) (*Client, error) {
-	c = NewClient(c)
-	return c, nil
-
-}
-func (c *Client) connect(host, port, domain, username, password string, usetls bool) (*ldap.Conn, error) {
+func (c *Client) connect(host, username, password, domain string, port int, usetls bool) (*Client, error) {
 	log.Infof("Connecting to %s:%d.", host, port)
-
-	if host == "" {
-		return nil, fmt.Errorf("connect - no ad host specified")
-	}
-
-	if domain == "" {
-		return nil, fmt.Errorf("connect - no ad domain specified")
-	}
-
-	if username == "" {
-		return nil, fmt.Errorf("connect - no bind user specified")
-	}
 
 	ldapconn, err := ldap.Dial("tcp", fmt.Sprintf("%s:%d", host, port))
 	if err != nil {
@@ -85,7 +77,7 @@ func (c *Client) connect(host, port, domain, username, password string, usetls b
 
 	user := username
 	if ok, e := regexp.MatchString(`.*,ou=.*`, username); e != nil || !ok {
-		user = fmt.Sprintf("%s@%s", user, c.client.domain)
+		user = fmt.Sprintf("%s@%s", user, domain)
 	}
 
 	log.Infof("Authenticating user %s.", user)
@@ -95,11 +87,11 @@ func (c *Client) connect(host, port, domain, username, password string, usetls b
 	}
 
 	log.Infof("Connected successfully to %s:%d.", host, port)
-	return ldapconn, err
+	return c, err
 }
 
-func (c *Client) getDomainDN() string {
-	tmp := strings.Split(c.client.domain, ".")
+func (c *Client) getDomainDN(domain string) string {
+	tmp := strings.Split(domain, ".")
 	return strings.ToLower(fmt.Sprintf("dc=%s", strings.Join(tmp, ",dc=")))
 }
 
@@ -267,4 +259,15 @@ func (c *Client) updateObject(dn string, classes []string, added, changed, remov
 
 	log.Info("Object updated")
 	return nil
+}
+
+func NewConfig(host, username, password, domain string, port int, usetls bool) *ADConfig {
+	c := ADConfig{}
+	c.domain = domain
+	c.host = host
+	c.password = password
+	c.user = username
+	c.port = port
+	c.useTLS = usetls
+	return &c
 }
