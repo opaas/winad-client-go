@@ -38,7 +38,7 @@ var _ ADComputerService = &ADComputerServiceOp{}
 func (s *ADComputerServiceOp) getComputer(name string) (*ADComputer, error) {
 	log.Infof("Searching ad computer %s", name)
 
-	domain := s.client.getDomainDN()
+	domain := s.client.Config.domain
 	attributes := []string{"cn", "description"}
 
 	// ldap filter
